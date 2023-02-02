@@ -1,59 +1,65 @@
 // ignore_for_file: must_be_immutable
-
+import 'package:provider/provider.dart';
 import 'package:challenge/consts/constants.dart';
 import 'package:challenge/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../data/model/tour.dart';
+import 'home_screen_provider.dart';
 
 class FavoritsScreen extends StatefulWidget {
-  FavoritsScreen({super.key, this.favouritesList});
-  List<Tour>? favouritesList;
+  const FavoritsScreen({super.key});
+
   @override
   State<FavoritsScreen> createState() => _FavoritsScreenState();
 }
 
 class _FavoritsScreenState extends State<FavoritsScreen> {
-  List<Tour>? favouritesList = [];
-  @override
-  void initState() {
-    super.initState();
-    favouritesList = widget.favouritesList;
-  }
-
   @override
   Widget build(BuildContext context) {
+    HomeScreenProvider homeScreenProvider =
+        Provider.of<HomeScreenProvider>(context, listen: true);
+    return _getShowFavoritList(context, homeScreenProvider);
+  }
+
+  Widget _getShowFavoritList(
+      BuildContext context, HomeScreenProvider provider) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(
-          onPressed: () => Navigator.pop(context, favouritesList),
-        ),
+        leading: BackButton(onPressed: () {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) {
+            return HomeScreen();
+          }));
+        }),
         backgroundColor: blue,
         centerTitle: true,
         title: Text('Your Favourite Tours'),
       ),
       body: SafeArea(
         child: CustomScrollView(
-          slivers: [_getToursList(favouritesList!)],
+          slivers: [
+            _getToursList(provider),
+          ],
         ),
       ),
     );
   }
 
-  Widget _getToursList(List<Tour> favouritesList) {
+  Widget _getToursList(HomeScreenProvider provider) {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
-        return _getTourCard(favouritesList[index], index);
-      }, childCount: favouritesList.length),
+        return _getTourCard(provider.favorritsList[index], index, provider);
+      }, childCount: provider.favorritsList.length),
     );
   }
 
-  Widget _getTourCard(Tour data, int index) {
+  Widget _getTourCard(Tour data, int index, HomeScreenProvider provider) {
     return Dismissible(
       key: Key(index.toString()),
       onDismissed: (direction) {
-        favouritesList!.removeAt(index);
+        provider.favorritsList.removeAt(index);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('The Toure has been deleted'),
           duration: const Duration(seconds: 1),

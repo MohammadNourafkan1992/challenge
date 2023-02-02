@@ -2,10 +2,11 @@ import 'package:challenge/consts/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:provider/provider.dart';
 import '../consts/fake_data.dart';
 import '../data/model/tour.dart';
 import 'favourites_screen.dart';
+import 'home_screen_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,21 +16,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 List<Tour> tourList = fakeList;
-List<Tour> favoritsList = [];
-int counter = favoritsList.length;
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    HomeScreenProvider homeScreenProvider =
+        Provider.of<HomeScreenProvider>(context, listen: true);
+    return _getWidgets(context, homeScreenProvider);
+  }
+
+  Widget _getWidgets(BuildContext context, HomeScreenProvider provider) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: white,
         body: Column(
-          children: [getNavigation(), getScrollingCards()],
+          children: [
+            getNavigation(context, provider),
+            getScrollingCards(provider)
+          ],
         ));
   }
 
-  Widget getNavigation() {
+  Widget getNavigation(context, HomeScreenProvider provider) {
     return Expanded(
       flex: 40,
       child: Container(
@@ -49,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(
                 height: 20,
               ),
-              _getAppBar(),
+              _getAppBar(context, provider),
               _getTopChoices(),
               _getLabel(),
               _getSearchBox(),
@@ -60,26 +68,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _getAppBar() {
+  Widget _getAppBar(context, HomeScreenProvider provider) {
     return Row(
       children: [
         IconButton(onPressed: () {}, icon: FaIcon(FontAwesomeIcons.list)),
         Spacer(),
         Text(
-          counter.toString(),
+          provider.favorritsList.length.toString(),
           style: TextStyle(fontFamily: 'Arial', fontSize: 20, color: white),
         ),
         IconButton(
-            onPressed: () async {
-              List<Tour> remainedList = await Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (BuildContext context) {
-                return FavoritsScreen(
-                  favouritesList: favoritsList,
-                );
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (BuildContext context) {
+                return FavoritsScreen();
               }));
-              favoritsList = remainedList;
-              counter = favoritsList.length;
-              setState(() {});
             },
             icon: FaIcon(FontAwesomeIcons.solidHeart))
       ],
@@ -158,13 +161,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget getScrollingCards() {
+  Widget getScrollingCards(HomeScreenProvider provider) {
     return Expanded(
       flex: 60,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 18),
         child: CustomScrollView(
-          slivers: [_getFixedTitle(), _getToursList(tourList)],
+          slivers: [_getFixedTitle(), _getToursList(tourList, provider)],
         ),
       ),
     );
@@ -195,21 +198,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _getToursList(List tourList) {
+  Widget _getToursList(List tourList, HomeScreenProvider provider) {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
-        return _getTourCard(tourList[index]);
+        return _getTourCard(tourList[index], provider);
       }, childCount: tourList.length),
     );
   }
 
-  Widget _getTourCard(Tour data) {
+  Widget _getTourCard(Tour data, HomeScreenProvider provider) {
     return InkWell(
       onTap: () {
-        favoritsList.add(data);
-        favoritsList = favoritsList.toSet().toList();
-        counter = favoritsList.length;
-        setState(() {});
+        provider.favorritsList.add(data);
+        provider.favorritsList = provider.favorritsList.toSet().toList();
       },
       child: Column(
         children: [

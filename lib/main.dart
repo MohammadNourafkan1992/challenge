@@ -1,16 +1,20 @@
 import 'package:challenge/consts/constants.dart';
 import 'package:challenge/screens/home_screen.dart';
+import 'package:challenge/screens/home_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
   ));
 
-  runApp(const MyApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (_) => HomeScreenProvider()),
+  ], child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
